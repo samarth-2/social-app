@@ -28,6 +28,37 @@ const deletePostService =async(postId,authorId)=>{
   
 }
 
+async function getPaginatedPosts(page = 1, limit = 10) {
+  try {
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find({})
+      .populate("author", "username name email") 
+      .populate({
+        path: "comments",
+        populate: {
+          path: "author",
+          select: "username name", 
+        },
+      })
+      .sort({ createdAt: -1 }) 
+      .skip(skip)
+      .limit(limit)
+      .lean(); 
+
+    const totalPosts = await Post.countDocuments();
+
+    return {
+      posts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+    };
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    throw error;
+  }
+}
+
 module.exports ={
     createPostService,
     getPostsByUserService,

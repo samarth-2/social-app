@@ -1,68 +1,53 @@
-import { useState } from "react";
-import { createPost } from "../../api/post";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { createComment } from "../../api/comment";
+import { createPost, fetchFeed } from "../../api/post";
+import Post from "../post/Post";
 
 export default function Home() {
   const [newPost, setNewPost] = useState({ title: "", content: "" });
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      author: "Alice Johnson",
-      title: "Best Coffee Ever ",
-      content: "Just had the best coffee ever!",
-      time: "2h ago",
-      comments: [
-        { id: 1, author: "Bob", text: "Sounds amazing!" },
-        { id: 2, author: "Charlie", text: "Where did you get it?" },
-      ],
-    },
-    {
-      id: 2,
-      author: "Bob Smith",
-      title: "Working on a new project",
-      content: "Can't wait to share updates soon!",
-      time: "5h ago",
-      comments: [],
-    },
-  ]);
+  const [posts, setPosts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const fetchPosts = async (pageNum = 1) => {
+    try {
+      setLoading(true);
+      const data = await fetchFeed(pageNum);
+
+      if (data.success) {
+        setPosts(data.posts);
+        setTotalPages(data.totalPages);
+      } else {
+        toast.error("Failed to load posts");
+      }
+    } catch (err) {
+      console.error("Error fetching posts:", err);
+      toast.error("Failed to fetch posts");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts(page);
+  }, [page]);
 
   const handlePostSubmit = async (e) => {
     e.preventDefault();
     if (!newPost.title.trim() || !newPost.content.trim()) return;
 
-    const newPostData = {
-      id: Date.now(),
-      author: "You",
-      title: newPost.title,
-      content: newPost.content,
-      time: "just now",
-      comments: [],
-    };
-    const response = await createPost(newPost.title,newPost.content);
-    setPosts([newPostData, ...posts]);
-    setNewPost({ title: "", content: "" });
+    try {
+      await createPost(newPost.title, newPost.content);
+      toast.success("Post created successfully!");
+      setNewPost({ title: "", content: "" });
+      fetchPosts(1); 
+      setPage(1);
+    } catch (err) {
+      console.error("Error creating post:", err);
+      toast.error("Error creating post");
+    }
   };
-
-  const handleAddComment = (postId, commentText) => {
-    if (!commentText.trim()) return;
-    const res = createComment(commentText,postId)
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              comments: [
-                ...post.comments,
-                { id: Date.now(), author: "You", text: commentText },
-              ],
-            }
-          : post
-      )
-    );
-  };
-
-  const [commentText, setCommentText] = useState({});
 
   return (
     <div className="flex justify-center min-h-screen bg-gray-50 py-10 px-4">
@@ -110,71 +95,45 @@ export default function Home() {
             />
             <button
               type="submit"
-              className="self-end bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
+              className="self-end bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+              disabled={loading}
             >
-              Post
+              {loading ? "Posting..." : "Post"}
             </button>
           </form>
 
           <h2 className="text-xl font-semibold mb-4">Recent Posts</h2>
-          <div className="flex flex-col gap-6">
-            {posts.map((post) => (
-              <div
-                key={post.id}
-                className="border-b pb-6 last:border-none space-y-3"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold">{post.author}</p>
-                  <p className="text-sm text-gray-400">{post.time}</p>
-                </div>
-                <h3 className="text-lg font-medium">{post.title}</h3>
-                <p className="text-gray-700">{post.content}</p>
-                <div className="flex gap-4 text-sm text-gray-500">
-                  <button className="hover:text-blue-600">Like</button>
-                  <button className="hover:text-blue-600">Comment</button>
-                  <button className="hover:text-blue-600">Share</button>
-                </div>
 
-                <div className="mt-4 space-y-2">
-                  {post.comments.map((c) => (
-                    <div key={c.id} className="border rounded-md p-2">
-                      <p className="text-sm">
-                        <span className="font-medium">{c.author}: </span>
-                        {c.text}
-                      </p>
-                    </div>
-                  ))}
+          {loading ? (
+            <p className="text-gray-500 text-center">Loading posts...</p>
+          ) : posts.length > 0 ? (
+            <div className="flex flex-col gap-6">
+              {posts.map((post) => (
+                <Post key={post._id} post={post} setPosts={setPosts} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center">No posts yet.</p>
+          )}
 
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleAddComment(post.id, commentText[post.id] || "");
-                      setCommentText((prev) => ({ ...prev, [post.id]: "" }));
-                    }}
-                    className="flex gap-2 mt-2"
-                  >
-                    <input
-                      type="text"
-                      placeholder="Write a comment..."
-                      value={commentText[post.id] || ""}
-                      onChange={(e) =>
-                        setCommentText((prev) => ({
-                          ...prev,
-                          [post.id]: e.target.value,
-                        }))
-                      }
-                      className="border rounded-md p-2 flex-1 focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                    <button
-                      type="submit"
-                      className="bg-blue-600 text-white px-4 rounded-md hover:bg-blue-700 transition"
-                    >
-                      Post
-                    </button>
-                  </form>
-                </div>
-              </div>
-            ))}
+          <div className="flex justify-center mt-6 gap-3">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="bg-gray-200 px-3 py-1 rounded disabled:opacity-50"
+            >
+              Prev
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="bg-gray-200 px-3 py-1 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
