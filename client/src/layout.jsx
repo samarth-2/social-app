@@ -2,6 +2,8 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { LogOut, UserCircle } from "lucide-react";
 import {jwtDecode} from "jwt-decode";
+import SocketEventHandler from "./utils/socketEventsHandler";
+import { ToastContainer } from "react-toastify";
 
 export default function Layout() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -38,6 +40,17 @@ export default function Layout() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <SocketEventHandler/>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="light"
+      />
       <nav className="flex sticky top-0 z-50 p-4 bg-white shadow gap-6 justify-between items-center">
         <div className="flex gap-6">
           <Link to="/" className="text-blue-600 hover:underline font-semibold">

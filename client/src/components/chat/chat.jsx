@@ -25,7 +25,9 @@ export default function Chat() {
 
   useEffect(() => {
     if (currentUser?._id) {
-      socket.connect();
+      if(!socket.connected){
+        socket.connect();
+      }
       socket.emit("register_user", currentUser._id);
     }
     return () => {

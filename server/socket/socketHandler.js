@@ -24,7 +24,6 @@ module.exports = (io)=>{
             }
         });
 
-
         socket.on("disconnect",()=>{
             for( const[userId,socket_id] of usersMap.entries()){
                 if(socket_id===socket.id){

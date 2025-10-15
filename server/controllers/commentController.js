@@ -1,9 +1,11 @@
+const Post = require("../models/post");
 const {
     createCommentService,
     getCommentByPostService,
     deleteCommentService,
     updateCommentService
 } = require("../services/commentService");
+const {getIO} = require("../socket/socket");
 
 
 const createCommentController = async(req,res)=>{
@@ -11,6 +13,10 @@ const createCommentController = async(req,res)=>{
         const {text,postId} =req.body;
         const authorId = req.user.userId;
         const comment = await createCommentService(text,postId,authorId);
+        const post = await Post.findById(postId)
+    .populate("author", "username");
+        const io = getIO();
+        io.emit("new_post_added", { username: req.user.username ,author:post.author.username});
         return res.status(201).json({message:"comment create successfully",data:comment});
     }catch(error){
         return res.status(400).json({message:error.message});

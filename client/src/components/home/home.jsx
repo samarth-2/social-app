@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { createPost } from "../../api/post";
+import { toast } from "react-toastify";
+import { createComment } from "../../api/comment";
 
 export default function Home() {
   const [newPost, setNewPost] = useState({ title: "", content: "" });
@@ -24,7 +27,7 @@ export default function Home() {
     },
   ]);
 
-  const handlePostSubmit = (e) => {
+  const handlePostSubmit = async (e) => {
     e.preventDefault();
     if (!newPost.title.trim() || !newPost.content.trim()) return;
 
@@ -36,14 +39,14 @@ export default function Home() {
       time: "just now",
       comments: [],
     };
-    
+    const response = await createPost(newPost.title,newPost.content);
     setPosts([newPostData, ...posts]);
     setNewPost({ title: "", content: "" });
   };
 
   const handleAddComment = (postId, commentText) => {
     if (!commentText.trim()) return;
-
+    const res = createComment(commentText,postId)
     setPosts((prev) =>
       prev.map((post) =>
         post.id === postId

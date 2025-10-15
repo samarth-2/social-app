@@ -8,6 +8,7 @@ const { Server } = require("socket.io");
 const http = require("http");
 const cors = require("cors");
 const config = require("./config/config");
+const { initSocket } = require("./socket/socket");
 
 const app = express();
 app.use(express.json());
@@ -19,15 +20,8 @@ app.use("/comment", commentRoutes);
 app.use("/chat", chatRoutes);
 
 const server = http.createServer(app);
+initSocket(server);
 
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-});
-
-require("./socket/socketHandler")(io);
 
 server.listen(config.PORT, () => {
   console.log(`Server running at port ${config.PORT}`);

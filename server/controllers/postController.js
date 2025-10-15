@@ -1,4 +1,6 @@
 const { createPostService,getPostsByUserService ,deletePostService } = require("../services/postService");
+const {getIO} = require("../socket/socket");
+
 const createPostController = async (req, res) => {
     try {
         const { title, content } = req.body;
@@ -6,10 +8,13 @@ const createPostController = async (req, res) => {
             res.status(400).json({ message: "title and content are required" });
         }
         const post = await createPostService(title, content, req.user);
-
+        const io = getIO();
+        io.emit("new_post_added", { username: req.user.username });
+        console.log("emitted");
         return res.status(201).json({ message: "post created successfully", data: post });
 
     } catch (error) {
+        console.log(error.message);
         return res.status(400).json({ message: error.message });
     }
 
