@@ -1,4 +1,4 @@
-const { signupService, signinService, followUserService, unfollowUserService } = require("../services/authService");
+const { signupService, signinService, followUserService, unfollowUserService, getUsersForChatService } = require("../services/authService");
 
 const signupController = async (req, res) => {
   try {

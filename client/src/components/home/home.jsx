@@ -6,7 +6,7 @@ export default function Home() {
     {
       id: 1,
       author: "Alice Johnson",
-      title: "Best Coffee Ever ☕",
+      title: "Best Coffee Ever ",
       content: "Just had the best coffee ever!",
       time: "2h ago",
       comments: [
@@ -17,7 +17,7 @@ export default function Home() {
     {
       id: 2,
       author: "Bob Smith",
-      title: "Working on a new project 🚀",
+      title: "Working on a new project",
       content: "Can't wait to share updates soon!",
       time: "5h ago",
       comments: [],
@@ -64,7 +64,6 @@ export default function Home() {
   return (
     <div className="flex justify-center min-h-screen bg-gray-50 py-10 px-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl">
-        {/* LEFT — People */}
         <div className="bg-white rounded-2xl shadow p-6 h-fit md:sticky md:top-24">
           <h2 className="text-xl font-semibold mb-4">People you may know</h2>
           <div className="flex flex-col gap-4">
@@ -85,7 +84,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* RIGHT — Posts */}
         <div className="md:col-span-2 bg-white rounded-2xl shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Create a Post</h2>
           <form
@@ -134,7 +132,6 @@ export default function Home() {
                   <button className="hover:text-blue-600">Share</button>
                 </div>
 
-                {/* Comments */}
                 <div className="mt-4 space-y-2">
                   {post.comments.map((c) => (
                     <div key={c.id} className="border rounded-md p-2">
@@ -145,7 +142,6 @@ export default function Home() {
                     </div>
                   ))}
 
-                  {/* Add Comment */}
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();

@@ -31,6 +31,7 @@ export default function Layout() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setIsLoggedIn(false);
     navigate("/signin");
   };

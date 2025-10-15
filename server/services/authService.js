@@ -94,10 +94,31 @@ const unfollowUserService = async (currentUserId, targetUserId) => {
   return { message: "Unfollowed successfully" };
 };
 
+const getFollowedUserService = async (userId) => {
+  const user = await User.findById(userId).populate("following", "name username email");
+  return user?.following || [];
+};
+
+const getUnfollowedUser = async (userId) => {
+  const user = await User.findById(userId).select("following");
+  const followedIds = user?.following || [];
+
+  const unfollowed = await User.find({
+    _id: { $nin: [...followedIds, userId] },
+  }).select("name username email");
+
+  return unfollowed;
+};
+const getUsersForChatService=async(userId)=>{
+  const users = await User.find({ _id: { $ne: userId } }).select("name username email");
+  return users;
+}
+
 
 module.exports = {
   signupService,
   signinService,
   followUserService,
   unfollowUserService,
+  getUsersForChatService
 };

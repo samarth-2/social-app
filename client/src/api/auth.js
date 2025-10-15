@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import { socket } from "../utils/socket";
 const API_BASE = import.meta.env.VITE_API_URL;
 export const signup = async (data) => {
     const payload={
@@ -23,7 +23,8 @@ export const signin = async (formData) => {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
     }
-
+    socket.connect();
+    socket.emit("register_user", user._id);
     return res.data;
   } catch (err) {
     if (err.response) {
