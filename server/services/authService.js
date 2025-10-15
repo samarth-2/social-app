@@ -47,7 +47,57 @@ const signinService = async ({ email, password }) => {
 
 };
 
+
+const followUserService = async (currentUserId, targetUserId) => {
+  if (currentUserId === targetUserId) {
+    throw new Error("You cannot follow yourself");
+  }
+
+  const currentUser = await User.findById(currentUserId);
+  const targetUser = await User.findById(targetUserId);
+
+  if (!targetUser) throw new Error("User not found");
+
+  if (currentUser.following.includes(targetUserId)) {
+    throw new Error("Already following this user");
+  }
+
+  currentUser.following.push(targetUserId);
+  targetUser.followers.push(currentUserId);
+
+  await currentUser.save();
+  await targetUser.save();
+
+  return { message: "Followed successfully" };
+};
+
+const unfollowUserService = async (currentUserId, targetUserId) => {
+  if (currentUserId === targetUserId) {
+    throw new Error("You cannot unfollow yourself");
+  }
+
+  const currentUser = await User.findById(currentUserId);
+  const targetUser = await User.findById(targetUserId);
+
+  if (!targetUser) throw new Error("User not found");
+
+  currentUser.following = currentUser.following.filter(
+    (id) => id.toString() !== targetUserId.toString()
+  );
+  targetUser.followers = targetUser.followers.filter(
+    (id) => id.toString() !== currentUserId.toString()
+  );
+
+  await currentUser.save();
+  await targetUser.save();
+
+  return { message: "Unfollowed successfully" };
+};
+
+
 module.exports = {
   signupService,
-  signinService
+  signinService,
+  followUserService,
+  unfollowUserService,
 };

@@ -1,4 +1,4 @@
-const { signupService, signinService } = require("../services/authService");
+const { signupService, signinService, followUserService, unfollowUserService } = require("../services/authService");
 
 const signupController = async (req, res) => {
   try {
@@ -38,7 +38,36 @@ const signinController = async (req, res) => {
   }
 };
 
+const followUserController = async (req, res) => {
+  try {
+    const payload={
+      currentUserId:req.user.userId,
+      targetUserId:req.target_id
+    }
+    const result = await followUserService(payload);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+const unfollowUserController = async (req, res) => {
+  try {
+    const payload={
+      currentUserId:req.user.userId,
+      targetUserId:req.target_id
+    }
+    const result = await unfollowUserService(payload);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+
 module.exports = {
     signupController,
-    signinController
+    signinController,
+    followUserController,
+    unfollowUserController
 }
