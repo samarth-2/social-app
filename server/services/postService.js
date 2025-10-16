@@ -1,8 +1,9 @@
 const Post = require("../models/post");
-const createPostService =async(title,content,user)=>{
+const createPostService =async(title,content,imageUrl,user)=>{
     const post = await Post.create({
         title:title,
         content:content,
+        image:imageUrl,
         author:user.userId
     });
     const postObj = post.toObject();

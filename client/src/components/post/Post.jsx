@@ -19,7 +19,7 @@ export default function Post({ post, setPosts }) {
                 comments: [
                   ...p.comments,
                   {
-                    _id: Date.now(), 
+                    _id: Date.now(),
                     author: { username: "You" },
                     text: commentText,
                   },
@@ -36,6 +36,7 @@ export default function Post({ post, setPosts }) {
 
   return (
     <div className="border-b pb-6 last:border-none space-y-3">
+
       <div className="flex items-center justify-between">
         <p className="font-semibold">
           {post.author?.username || post.author?.name || "Unknown User"}
@@ -45,10 +46,21 @@ export default function Post({ post, setPosts }) {
         </p>
       </div>
 
+
       <h3 className="text-lg font-medium">{post.title}</h3>
       <p className="text-gray-700">{post.content}</p>
 
-      <div className="flex gap-4 text-sm text-gray-500">
+      {post.image && (
+        <div className="mt-3">
+          <img
+            src={post.image}
+            alt="Post"
+            className="w-full rounded-lg object-cover max-h-96 shadow-sm"
+          />
+        </div>
+      )}
+
+      <div className="flex gap-4 text-sm text-gray-500 mt-2">
         <button className="hover:text-blue-600">Like</button>
         <button className="hover:text-blue-600">Comment</button>
         <button className="hover:text-blue-600">Share</button>

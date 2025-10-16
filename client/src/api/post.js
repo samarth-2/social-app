@@ -1,8 +1,8 @@
 import { authAxios } from "./axios";
 
-export const createPost = async (title, content) => {
+export const createPost = async (title, content,imageUrl) => {
   try {
-    const payload = { title, content };
+    const payload = { title, content ,imageUrl};
     const response = await authAxios.post("/post/create-post", payload);
     return response.data; 
   } catch (error) {

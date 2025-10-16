@@ -2,9 +2,15 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { createPost, fetchFeed } from "../../api/post";
 import Post from "../post/Post";
+import imagekit from "../../api/imagekit";
 
 export default function Home() {
-  const [newPost, setNewPost] = useState({ title: "", content: "" });
+  const [newPost, setNewPost] = useState({
+    title: "",
+    content: "",
+    imageFile: null,
+  });
+  const [imagePreview, setImagePreview] = useState(null);
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -33,21 +39,69 @@ export default function Home() {
     fetchPosts(page);
   }, [page]);
 
-  const handlePostSubmit = async (e) => {
-    e.preventDefault();
-    if (!newPost.title.trim() || !newPost.content.trim()) return;
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    try {
-      await createPost(newPost.title, newPost.content);
-      toast.success("Post created successfully!");
-      setNewPost({ title: "", content: "" });
-      fetchPosts(1); 
-      setPage(1);
-    } catch (err) {
-      console.error("Error creating post:", err);
-      toast.error("Error creating post");
-    }
+    setNewPost({ ...newPost, imageFile: file });
+    setImagePreview(URL.createObjectURL(file));
   };
+
+  const handlePostSubmit = async (e) => {
+  e.preventDefault();
+  const { title, content, imageFile } = newPost;
+
+  if (!title.trim() || !content.trim()) {
+    toast.error("Title and content are required!");
+    return;
+  }
+
+  if (!imageFile) {
+    toast.error("Please upload an image!");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const authResponse = await fetch(import.meta.env.VITE_IMAGEKIT_AUTH_ENDPOINT);
+    if (!authResponse.ok) throw new Error("Failed to get auth");
+    const authData = await authResponse.json();
+
+    const uploadResponse = await new Promise((resolve, reject) => {
+      imagekit.upload(
+        {
+          file: imageFile,
+          fileName: `post_${Date.now()}.jpg`,
+          folder: "/posts",
+          token: authData.token,
+          signature: authData.signature,
+          expire: authData.expire,
+        },
+        (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        }
+      );
+    });
+
+    const imageUrl = uploadResponse.url;
+    console.log(" Image uploaded:", imageUrl);
+
+    await createPost(title, content, imageUrl);
+
+    toast.success("Post created successfully!");
+    setNewPost({ title: "", content: "", imageFile: null });
+    setImagePreview(null);
+    fetchPosts(1);
+    setPage(1);
+  } catch (err) {
+    console.error("Error creating post:", err);
+    toast.error("Error creating post");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="flex justify-center min-h-screen bg-gray-50 py-10 px-4">
@@ -82,7 +136,9 @@ export default function Home() {
               type="text"
               placeholder="Title"
               value={newPost.title}
-              onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+              onChange={(e) =>
+                setNewPost({ ...newPost, title: e.target.value })
+              }
               className="border rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 outline-none"
             />
             <textarea
@@ -93,6 +149,23 @@ export default function Home() {
               }
               className="border rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
             />
+
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="border rounded-md p-2 w-full"
+              />
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full rounded-md max-h-64 object-cover"
+                />
+              )}
+            </div>
+
             <button
               type="submit"
               className="self-end bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
