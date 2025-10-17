@@ -7,6 +7,7 @@ import Signup from './components/auth/signup/signup'
 import Home from './components/home/home'
 import ProtectedRoute from './components/ProtectedRoute'
 import Chat from './components/chat/chat'
+import AdminDashboard from './components/admin/admindashboard'
 function App() {
 
   return (
@@ -18,6 +19,7 @@ function App() {
             <Route path='/signup' element={<Signup />} />
             <Route path='/' element={<Home />} />
             <Route path='/chat' element={<Chat />} />
+            <Route path='/admin/dashboard' element={<AdminDashboard />}/>
           </Route>
         </Route>
       </Routes>
