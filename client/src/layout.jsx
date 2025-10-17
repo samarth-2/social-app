@@ -60,6 +60,12 @@ export default function Layout() {
 
         <div className="flex items-center gap-4">
           {isLoggedIn ? (
+            <>
+            <div>
+              <Link to="/chat" className="text-blue-600 hover:underline font-semibold">
+                chat
+              </Link>
+            </div>
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 text-red-600 hover:text-red-700 transition"
@@ -67,6 +73,7 @@ export default function Layout() {
               <LogOut className="w-5 h-5" />
               Logout
             </button>
+            </>
           ) : (
             <Link
               to="/signin"

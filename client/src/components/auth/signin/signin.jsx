@@ -4,6 +4,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { signin } from "../../../api/auth";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 
 const schema = yup.object().shape({
   email: yup.string().email("Enter a valid email").required("Email is required"),
@@ -33,6 +35,22 @@ export default function Signin() {
       console.error("Login failed:", err);
     }
   };
+
+  const handleGoogleSuccess =async(response)=>{
+    try {
+      const { credential } = response;
+      const api_url=import.meta.env.VITE_API_URL;
+      const res = await axios.post(`${api_url}/google/auth`, {
+        credential,
+      });
+
+      localStorage.setItem("token", res.data.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.data.user));
+      navigate("/");
+    } catch (err) {
+      console.error("Google login error:", err);
+    }
+  }
 
   return (
     <div className="flex flex-col items-center justify-center py-10">
@@ -77,6 +95,12 @@ export default function Signin() {
           >
             {isSubmitting ? "Signing in..." : "Submit"}
           </button>
+
+          <div className="flex flex-col items-center justify-center">
+            <p>Or</p>
+            <GoogleLogin onSuccess={handleGoogleSuccess}
+      onError={() => console.log("Google login failed")}/>
+          </div>
 
           <p className="text-center text-gray-600">
             Don’t have an account?{" "}

@@ -60,11 +60,6 @@ export default function Post({ post, setPosts }) {
         </div>
       )}
 
-      <div className="flex gap-4 text-sm text-gray-500 mt-2">
-        <button className="hover:text-blue-600">Like</button>
-        <button className="hover:text-blue-600">Comment</button>
-        <button className="hover:text-blue-600">Share</button>
-      </div>
 
       <div className="mt-4 space-y-2">
         {post.comments?.map((c) => (
