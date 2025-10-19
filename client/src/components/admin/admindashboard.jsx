@@ -13,8 +13,6 @@ export default function AdminDashboard() {
     { id: "role", label: "Roles" },
     { id: "permission", label: "Permissions" },
     { id: "user", label: "Users" },
-    { id: "post", label: "Posts" },
-    { id: "comment", label: "Comments" },
   ];
 
   return (
@@ -46,10 +44,8 @@ export default function AdminDashboard() {
 
       <div className="flex-1 flex flex-col rounded-lg bg-white shadow overflow-y-auto p-6">
         {item=="role" && <ManageRole/>}
-        {item=="post" && <ManagePost/>}
         {item=="permission" && <ManagePermission/>}
         {item=="user" && <ManageUser/>}
-        {item=="comment" && <ManageComment/>}
       </div>
     </div>
   );

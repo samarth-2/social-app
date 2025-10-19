@@ -1,27 +1,18 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X } from "lucide-react";
-
-const mockPermissions = [
-  { _id: "p1", name: "Create Post" },
-  { _id: "p2", name: "Delete Post" },
-  { _id: "p3", name: "Manage Users" },
-  { _id: "p4", name: "View Analytics" },
-];
-
-const mockRoles = [
-  { _id: "1", name: "Admin", permission_level: "*", permissions: [] },
-  {
-    _id: "2",
-    name: "Moderator",
-    permission_level: "#",
-    permissions: [mockPermissions[0], mockPermissions[1]],
-  },
-];
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchRoles,
+  fetchPermissions,
+  createRole,
+  updateRole,
+  deleteRole,
+} from "../../../redux/slice/admin/roleSlice";
 
 export default function ManageRole() {
-  const [roles, setRoles] = useState([]);
-  const [permissions, setPermissions] = useState([]);
+  const dispatch = useDispatch();
+  const { roles, permissions, loading } = useSelector((state) => state.admin.roles);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
@@ -32,9 +23,9 @@ export default function ManageRole() {
   });
 
   useEffect(() => {
-    setRoles(mockRoles);
-    setPermissions(mockPermissions);
-  }, []);
+    dispatch(fetchRoles());
+    dispatch(fetchPermissions());
+  }, [dispatch]);
 
   const filtered = roles.filter((r) =>
     r.name.toLowerCase().includes(search.toLowerCase())
@@ -61,22 +52,13 @@ export default function ManageRole() {
       formData.permissions.includes(p._id)
     );
 
-    if (editingRole) {
-      setRoles((prev) =>
-        prev.map((r) =>
-          r._id === editingRole._id
-            ? { ...r, ...formData, permissions: selectedPerms }
-            : r
-        )
-      );
-    } else {
-      const newRole = {
-        _id: Date.now().toString(),
-        ...formData,
-        permissions: selectedPerms,
-      };
-      setRoles((prev) => [...prev, newRole]);
-    }
+    const roleData = {
+      ...formData,
+      permissions: selectedPerms.map((p) => p._id),
+    };
+
+    if (editingRole) dispatch(updateRole({ _id: editingRole._id, ...roleData }));
+    else dispatch(createRole(roleData));
 
     setShowModal(false);
   };
@@ -123,7 +105,13 @@ export default function ManageRole() {
             </tr>
           </thead>
           <tbody>
-            {filtered.length ? (
+            {loading ? (
+              <tr>
+                <td colSpan="4" className="text-center py-6 text-gray-500">
+                  Loading...
+                </td>
+              </tr>
+            ) : filtered.length ? (
               filtered.map((role) => (
                 <tr key={role._id} className="hover:bg-gray-50">
                   <td className="p-3 border-b">{role.name}</td>
@@ -154,9 +142,7 @@ export default function ManageRole() {
                       Edit
                     </button>
                     <button
-                      onClick={() =>
-                        setRoles((prev) => prev.filter((r) => r._id !== role._id))
-                      }
+                      onClick={() => dispatch(deleteRole(role._id))}
                       className="text-red-600 hover:underline"
                     >
                       Delete

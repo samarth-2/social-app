@@ -6,6 +6,8 @@ const commentRoutes = require("./routes/commentRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const imageKitRoutes = require("./routes/imageKitRoutes");
 const googleAuthRoutes = require("./routes/googleRoutes");
+const adminRoutes = require('./routes/adminRoutes');
+
 const { Server } = require("socket.io");
 const http = require("http");
 const cors = require("cors");
@@ -22,6 +24,7 @@ app.use("/comment", commentRoutes);
 app.use("/chat", chatRoutes);
 app.use("/imagekit", imageKitRoutes);
 app.use("/google", googleAuthRoutes);
+app.use("/admin",adminRoutes);
 
 const server = http.createServer(app);
 initSocket(server);
