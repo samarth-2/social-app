@@ -8,6 +8,7 @@ import Home from './components/home/home'
 import ProtectedRoute from './components/ProtectedRoute'
 import Chat from './components/chat/chat'
 import AdminDashboard from './components/admin/admindashboard'
+import ProfilePage from './components/profile/Profile'
 function App() {
 
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path='/' element={<Home />} />
             <Route path='/chat' element={<Chat />} />
             <Route path='/admin/dashboard' element={<AdminDashboard />}/>
+            <Route path='/profile/:userId' element={<ProfilePage/>} />
           </Route>
         </Route>
       </Routes>

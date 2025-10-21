@@ -50,7 +50,6 @@ const deletePostController = async(req,res)=>{
 
 const getPaginatedPosts = async (req, res) => {
   try {
-    console.log(req);
     const page = parseInt(req.query.page) || 1;
     const limit = 5;
     const skip = (page - 1) * limit;

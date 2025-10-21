@@ -1,4 +1,4 @@
-const { signupService, signinService, followUserService, unfollowUserService, getUsersForChatService } = require("../services/authService");
+const { signupService, signinService, followUserService, unfollowUserService, getUsersForChatService ,getRandomUsersService,getActiveUsersService, getUserProfileService } = require("../services/authService");
 
 const signupController = async (req, res) => {
   try {
@@ -64,10 +64,43 @@ const unfollowUserController = async (req, res) => {
   }
 };
 
+const getRandomUsersController = async (req, res) => {
+  try {
+    const result = await getRandomUsersService(req.user.userId);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+const getActiveUsersController = async (req, res) => {
+  try {
+    const result = await getActiveUsersService(req.user.userId);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+
+const getUserProfileController = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await getUserProfileService(userId);
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+
 
 module.exports = {
     signupController,
     signinController,
     followUserController,
-    unfollowUserController
+    unfollowUserController,
+    getActiveUsersController,
+    getRandomUsersController,
+    getUserProfileController
 }

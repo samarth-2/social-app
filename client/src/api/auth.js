@@ -34,3 +34,13 @@ export const signin = async (formData) => {
     }
   }
 };
+
+export const getUserProfile = async (userId) => {
+  try {
+    const response = await authAxios.get(`/user/profile/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw error.response?.data || { message: "Failed to fetch profile" };
+  }
+};

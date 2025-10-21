@@ -7,10 +7,8 @@ export default function Post({ post, setPosts }) {
   const handleAddComment = async (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
-
     try {
       await createComment(commentText, post._id);
-
       setPosts((prev) =>
         prev.map((p) =>
           p._id === post._id
@@ -35,10 +33,9 @@ export default function Post({ post, setPosts }) {
   };
 
   return (
-    <div className="border-b pb-6 last:border-none space-y-3">
-
-      <div className="flex items-center justify-between">
-        <p className="font-semibold">
+    <div className="bg-gray-50 border border-gray-200 rounded-2xl shadow-sm p-5 transition hover:shadow-md">
+      <div className="flex items-center justify-between mb-2">
+        <p className="font-semibold text-gray-900">
           {post.author?.username || post.author?.name || "Unknown User"}
         </p>
         <p className="text-sm text-gray-400">
@@ -46,26 +43,24 @@ export default function Post({ post, setPosts }) {
         </p>
       </div>
 
-
-      <h3 className="text-lg font-medium">{post.title}</h3>
-      <p className="text-gray-700">{post.content}</p>
+      <h3 className="text-lg font-semibold text-gray-800">{post.title}</h3>
+      <p className="text-gray-700 leading-relaxed mt-1">{post.content}</p>
 
       {post.image && (
-        <div className="mt-3">
+        <div className="mt-4">
           <img
             src={post.image}
             alt="Post"
-            className="w-full rounded-lg object-cover max-h-96 shadow-sm"
+            className="w-full rounded-xl object-cover max-h-[500px]"
           />
         </div>
       )}
 
-
-      <div className="mt-4 space-y-2">
+      <div className="mt-5 space-y-3">
         {post.comments?.map((c) => (
-          <div key={c._id} className="border rounded-md p-2">
+          <div key={c._id} className="bg-white border rounded-lg p-2">
             <p className="text-sm">
-              <span className="font-medium">
+              <span className="font-medium text-gray-800">
                 {c.author?.username || c.author?.name || "Anonymous"}:
               </span>{" "}
               {c.text}
@@ -73,17 +68,17 @@ export default function Post({ post, setPosts }) {
           </div>
         ))}
 
-        <form onSubmit={handleAddComment} className="flex gap-2 mt-2">
+        <form onSubmit={handleAddComment} className="flex gap-2 mt-3">
           <input
             type="text"
             placeholder="Write a comment..."
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
-            className="border rounded-md p-2 flex-1 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="border rounded-lg p-2 flex-1 focus:ring-2 focus:ring-blue-500 outline-none"
           />
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 rounded-md hover:bg-blue-700 transition"
+            className="bg-blue-600 text-white px-4 rounded-lg hover:bg-blue-700 transition"
           >
             Post
           </button>

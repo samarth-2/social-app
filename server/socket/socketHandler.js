@@ -1,6 +1,6 @@
 const usersMap = new Map();
 
-module.exports = (io)=>{
+const socketHandler = (io)=>{
     io.on("connection",(socket)=>{
         console.log("new user connected",socket.id)
         
@@ -36,3 +36,4 @@ module.exports = (io)=>{
         });
     })
 }
+module.exports={socketHandler,usersMap};

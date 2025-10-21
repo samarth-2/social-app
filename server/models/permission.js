@@ -10,6 +10,8 @@ const permissionSchema = new mongoose.Schema({
   ],
 });
 
+permissionSchema.index({ "routes.path": 1, "routes.method": 1 });
+
 
 const Permission = mongoose.model("Permission",permissionSchema);
 

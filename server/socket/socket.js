@@ -1,3 +1,4 @@
+const {socketHandler} = require("../socket/socketHandler");
 let io;
 
 function initSocket(server) {
@@ -9,7 +10,7 @@ function initSocket(server) {
     },
   });
 
-  require("./socketHandler")(io); // attach all socket event logic
+  socketHandler(io);
 }
 
 function getIO() {

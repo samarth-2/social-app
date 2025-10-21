@@ -1,7 +1,7 @@
 const mongoose = require("../database/database")
 const roleSchema= new mongoose.Schema(
     {
-        name:{type:String,required:true},
+        name:{type:String,required:true,index:true},
         permission_level: {
             type: String,
             enum: ["*", "#"],
@@ -11,7 +11,7 @@ const roleSchema= new mongoose.Schema(
 
     }
 )
-
+roleSchema.index({ permission_level: 1 });
 
 const Role = mongoose.model("Role",roleSchema);
 

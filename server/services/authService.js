@@ -2,6 +2,8 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/user");
 const config = require("../config/config");
 const jwt = require("jsonwebtoken");
+const {usersMap }= require("../socket/socketHandler");
+const Post = require("../models/post");
 const signupService = async ({ name, username, email, password }) => {
   const existingUser = await User.findOne({
     $or: [{ email }, { username }],
@@ -114,11 +116,52 @@ const getUsersForChatService=async(userId)=>{
   return users;
 }
 
+const getRandomUsersService = async (currentUserId) => {
+  const users = await User.aggregate([
+    { $match: { _id: { $ne: currentUserId } } }, 
+    { $sample: { size: 5 } },
+    { $project: {_id:1, username: 1,name:1 } }
+  ]);
+  console.log("random users: ",users);
+  return users;
+};
+
+const getActiveUsersService = async (currentUserId) => {
+  const activeUsersMap =usersMap; 
+   const activeUserIds = [...activeUsersMap.keys()].filter(id => id !== currentUserId);
+  console.log(activeUserIds);
+  const users = await User.find({ _id: { $in: activeUserIds } })
+    .select("_id username name");
+
+  return users;
+};
+
+const getUserProfileService = async (userId) => {
+
+  const user = await User.findById(userId)
+    .select("_id name username email")
+    .lean();
+  if (!user) throw new Error("User not found");
+
+  const posts = await Post.find({ author: userId })
+    .sort({ createdAt: -1 })
+    .populate({
+      path: "comments",
+      select: "_id text author",
+      populate: { path: "author", select: "username name" },
+    })
+    .lean();
+
+  return { user, posts };
+};
 
 module.exports = {
   signupService,
   signinService,
   followUserService,
   unfollowUserService,
-  getUsersForChatService
+  getUsersForChatService,
+  getActiveUsersService,
+  getRandomUsersService,
+  getUserProfileService
 };
