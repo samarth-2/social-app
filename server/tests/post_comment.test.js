@@ -83,4 +83,66 @@ describe('Post and Comment integration tests', () => {
     createdComment = res.body.data;
     expect(createdComment).toHaveProperty('text', commentPayload.text);
   });
+
+/////////////////////////////////////////////////////
+  
+test('create post should fail without auth', async () => {
+    const postPayload = {
+    title: 'No Auth Post',
+    content: 'Missing auth header should fail',
+    imageUrl: 'http://example.com/image.jpg'
+    };
+
+    const res = await request(app)
+    .post('/post/create-post')
+    .send(postPayload);
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toHaveProperty('message');
+});
+
+  test('create post should fail with invalid token', async () => {
+    const postPayload = {
+      title: 'Invalid Token Post',
+      content: 'Invalid token should fail',
+      imageUrl: 'http://example.com/image.jpg'
+    };
+
+    const res = await request(app)
+      .post('/post/create-post')
+      .set('Authorization', `Bearer invalid.token.here`)
+      .send(postPayload);
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body).toHaveProperty('message');
+  });
+
+  test('create post should fail with missing fields', async () => {
+    const postPayload = {
+      title: 'Bad Post',
+      content: 'Missing imageUrl'
+    };
+
+    const res = await request(app)
+      .post('/post/create-post')
+      .set('Authorization', `Bearer ${token}`)
+      .send(postPayload);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toHaveProperty('message');
+  });
+
+  test('create comment should fail without auth', async () => {
+    const commentPayload = {
+      text: 'Should fail',
+      postId: createdPost._id
+    };
+
+    const res = await request(app)
+      .post('/comment/create')
+      .send(commentPayload);
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toHaveProperty('message');
+  });
 });

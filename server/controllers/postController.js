@@ -6,9 +6,9 @@ const {getIO} = require("../socket/socket");
 const createPostController = async (req, res) => {
     try {
         const { title, content ,imageUrl } = req.body;
-        if (!title || !content || !imageUrl) {
-            res.status(400).json({ message: "title and content are required" });
-        }
+    if (!title || !content || !imageUrl) {
+      return res.status(400).json({ message: "title and content are required" });
+    }
         const post = await createPostService(title, content,imageUrl , req.user);
         const io = getIO();
         io.emit("new_post_added", { username: req.user.username });
