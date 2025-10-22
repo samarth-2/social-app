@@ -1,10 +1,17 @@
 const mongoose = require("mongoose");
-const config = require("../config/config")
+const config = require("../config/config");
 
-mongoose.connect(config.MONGO_URL).then(()=>{
+async function connect() {
+    const conn = await mongoose.connect(config.MONGO_URL, { });
     console.log("database connected");
-}).catch((err)=>{
-    console.log("mongo error occured : ",err);
-})
+    return mongoose;
+}
 
-module.exports=mongoose
+async function disconnect() {
+    await mongoose.disconnect();
+    console.log("database disconnected");
+}
+
+module.exports = mongoose;
+module.exports.connectDB = connect;
+module.exports.disconnectDB = disconnect;
