@@ -4,6 +4,8 @@ const config = require("../config/config");
 const jwt = require("jsonwebtoken");
 const {usersMap }= require("../socket/socketHandler");
 const Post = require("../models/post");
+const {Role} = require("../models/role");
+
 const signupService = async ({ name, username, email, password }) => {
   const existingUser = await User.findOne({
     $or: [{ email }, { username }],
@@ -28,25 +30,34 @@ const signupService = async ({ name, username, email, password }) => {
 
 
 const signinService = async ({ email, password }) => {
-  const user = await User.findOne({email});
-  if(!user){
+  const user = await User.findOne({ email }).lean();
+  if (!user) {
     throw new Error("User does not exist");
-  } 
-  const match = await bcrypt.compare(password,user.password);
-  if(!match){
-    throw new Error("email or password do not match");
   }
+
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) {
+    throw new Error("Email or password do not match");
+  }
+
   const token = jwt.sign(
-    { userId: user._id, email: user.email,username:user.username },
+    { userId: user._id, email: user.email, username: user.username },
     config.JWT_SECRET,
     { expiresIn: "1d" }
   );
 
-  const userObj = user.toObject();
+  let roleName = "user";
+  if (user.role) {
+    const roleDoc = await Role.findById(user.role).select("name").lean();
+    if (roleDoc?.name) {
+      roleName = roleDoc.name;
+    }
+  }
+
+  const userObj = { ...user, roleName };
   delete userObj.password;
 
-  return { user: userObj, token:token };
-
+  return { user: userObj, token };
 };
 
 
@@ -122,14 +133,14 @@ const getRandomUsersService = async (currentUserId) => {
     { $sample: { size: 5 } },
     { $project: {_id:1, username: 1,name:1 } }
   ]);
-  console.log("random users: ",users);
+
   return users;
 };
 
 const getActiveUsersService = async (currentUserId) => {
   const activeUsersMap =usersMap; 
    const activeUserIds = [...activeUsersMap.keys()].filter(id => id !== currentUserId);
-  console.log(activeUserIds);
+
   const users = await User.find({ _id: { $in: activeUserIds } })
     .select("_id username name");
 

@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
 import { getActiveUsers, getRandomUsers } from "../../api/home"; 
+import { useNavigate } from "react-router-dom";
 
 export default function RightSidebar() {
   const [randomUsers, setRandomUsers] = useState([]);
   const [activeUsers, setActiveUsers] = useState([]);
-
+  const navigate = useNavigate();
+  const handleClick=(userId)=>{
+    navigate(`/profile/${userId}`);
+  }
   useEffect(() => {
     (async () => {
       try {
         const randomRes = await getRandomUsers();
-        console.log(randomUsers);
         setRandomUsers(randomRes.data || []);
 
         const activeRes = await getActiveUsers();
@@ -31,7 +34,7 @@ export default function RightSidebar() {
         <h2 className="text-lg font-semibold mb-3">People You May Know</h2>
         {randomUsers.length ? (
           randomUsers.map((u) => (
-            <div key={u._id} className="flex items-center gap-3 py-2 border-b last:border-none">
+            <div onClick={()=>{handleClick(u._id)}} key={u._id} className="flex items-center gap-3 py-2 border-b last:border-none">
               <img
                 src={renderAvatar(u)}
                 alt={u.username}

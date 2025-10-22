@@ -5,6 +5,8 @@ import * as yup from "yup";
 import { signin } from "../../../api/auth";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
+import { setAuth } from "../../../redux/slice/authSlice";
+import { useDispatch } from "react-redux";
 import axios from "axios";
 
 const schema = yup.object().shape({
@@ -17,6 +19,7 @@ const schema = yup.object().shape({
 
 export default function Signin() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const {
     register,
     handleSubmit,
@@ -29,6 +32,8 @@ export default function Signin() {
   const onSubmit = async (data) => {
     try {
       const res = await signin(data);
+      const {token,user} = res.data;
+      dispatch(setAuth({ user, token }));
       reset();
       navigate("/");
     } catch (err) {
@@ -43,9 +48,8 @@ export default function Signin() {
       const res = await axios.post(`${api_url}/google/auth`, {
         credential,
       });
-
-      localStorage.setItem("token", res.data.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.data.user));
+      const {user,token} = res.data.data; 
+      dispatch(setAuth({user,token}));
       navigate("/");
     } catch (err) {
       console.error("Google login error:", err);

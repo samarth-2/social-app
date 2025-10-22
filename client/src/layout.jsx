@@ -1,40 +1,35 @@
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { LogOut, UserCircle } from "lucide-react";
-import {jwtDecode} from "jwt-decode";
 import SocketEventHandler from "./utils/socketEventsHandler";
 import { ToastContainer } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { clearAuth } from "./redux/slice/authSlice";
+import { jwtDecode } from "jwt-decode";
+import { useEffect } from "react";
 
 export default function Layout() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user, token } = useSelector((state) => state.auth);
+  const isLoggedIn = !!token;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setIsLoggedIn(false);
-      return;
-    }
-
-    try {
-      const decoded = jwtDecode(token);
-      const now = Date.now() / 1000;
-      if (decoded.exp && decoded.exp > now) {
-        setIsLoggedIn(true);
-      } else {
-        localStorage.removeItem("token");
-        setIsLoggedIn(false);
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        const now = Date.now() / 1000;
+        if (decoded.exp && decoded.exp <= now) {
+          dispatch(clearAuth());
+          navigate("/signin");
+        }
+      } catch (err) {
+        dispatch(clearAuth());
       }
-    } catch (err) {
-      localStorage.removeItem("token");
-      setIsLoggedIn(false);
     }
-  }, []);
+  }, [token, dispatch, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setIsLoggedIn(false);
+    dispatch(clearAuth());
     navigate("/signin");
   };
 
@@ -56,23 +51,27 @@ export default function Layout() {
           <Link to="/" className="text-blue-600 hover:underline font-semibold">
             Social App
           </Link>
+          {isLoggedIn && <div>Hi, {user.username}</div>}
         </div>
 
         <div className="flex items-center gap-4">
           {isLoggedIn ? (
             <>
-            <div>
-              <Link to="/chat" className="text-blue-600 hover:underline font-semibold">
-                chat
-              </Link>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 transition"
-            >
-              <LogOut className="w-5 h-5" />
-              Logout
-            </button>
+              <div>
+                <Link
+                  to="/chat"
+                  className="text-blue-600 hover:underline font-semibold"
+                >
+                  Chat
+                </Link>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-red-600 hover:text-red-700 transition"
+              >
+                <LogOut className="w-5 h-5" />
+                Logout
+              </button>
             </>
           ) : (
             <Link
@@ -80,7 +79,7 @@ export default function Layout() {
               className="text-blue-600 hover:underline flex items-center gap-1"
             >
               <UserCircle className="w-6 h-6" />
-              Signin
+              Sign In
             </Link>
           )}
         </div>

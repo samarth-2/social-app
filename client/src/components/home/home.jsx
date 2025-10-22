@@ -1,7 +1,7 @@
 import LeftSidebar from "./LeftSidebar";
 import RightSidebar from "./RightSidebar";
 import Post from "../post/Post";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { createPostThunk, fetchPostsThunk } from "../../redux/asyncthunk/postsThunks";
@@ -10,6 +10,7 @@ import { setPage } from "../../redux/slice/feedSlice";
 export default function Home() {
   const dispatch = useDispatch();
   const { items: posts, page, totalPages, loading } = useSelector((state) => state.posts);
+
   const [newPost, setNewPost] = useState({ title: "", content: "", imageFile: null });
   const [imagePreview, setImagePreview] = useState(null);
 
@@ -17,28 +18,35 @@ export default function Home() {
     dispatch(fetchPostsThunk(page));
   }, [dispatch, page]);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = useCallback((e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setNewPost({ ...newPost, imageFile: file });
+    setNewPost((prev) => ({ ...prev, imageFile: file }));
     setImagePreview(URL.createObjectURL(file));
-  };
+  }, []);
 
-  const handlePostSubmit = async (e) => {
-    e.preventDefault();
-    const { title, content, imageFile } = newPost;
-    if (!title.trim() || !content.trim()) return toast.error("All fields required");
-    if (!imageFile) return toast.error("Upload an image!");
+  const handlePostSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      const { title, content, imageFile } = newPost;
+      if (!title.trim() || !content.trim()) return toast.error("All fields required");
+      if (!imageFile) return toast.error("Upload an image!");
 
-    dispatch(createPostThunk({ title, content, imageFile }))
-      .unwrap()
-      .then(() => {
-        toast.success("Post created!");
-        setNewPost({ title: "", content: "", imageFile: null });
-        setImagePreview(null);
-      })
-      .catch((err) => toast.error(err || "Error creating post"));
-  };
+      dispatch(createPostThunk({ title, content, imageFile }))
+        .unwrap()
+        .then(() => {
+          toast.success("Post created!");
+          setNewPost({ title: "", content: "", imageFile: null });
+          setImagePreview(null);
+        })
+        .catch((err) => toast.error(err || "Error creating post"));
+    },
+    [newPost, dispatch]
+  );
+
+  const recentPosts = useMemo(() => {
+    return posts.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }, [posts]);
 
   return (
     <div className="bg-gray-50 py-10 px-4 min-h-screen flex justify-center">
@@ -55,13 +63,13 @@ export default function Home() {
                 type="text"
                 placeholder="Title"
                 value={newPost.title}
-                onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                onChange={(e) => setNewPost((prev) => ({ ...prev, title: e.target.value }))}
                 className="border rounded-md p-3 w-full focus:ring-2 focus:ring-blue-500 outline-none"
               />
               <textarea
                 placeholder="Share your thoughts..."
                 value={newPost.content}
-                onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                onChange={(e) => setNewPost((prev) => ({ ...prev, content: e.target.value }))}
                 className="border rounded-md p-3 w-full focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px]"
               />
               <input type="file" accept="image/*" onChange={handleImageChange} />
@@ -86,9 +94,9 @@ export default function Home() {
             <h2 className="text-2xl font-semibold mb-5">Recent Posts</h2>
             {loading ? (
               <p className="text-gray-500 text-center">Loading...</p>
-            ) : posts.length ? (
+            ) : recentPosts.length ? (
               <div className="flex flex-col gap-6">
-                {posts.map((post) => (
+                {recentPosts.map((post) => (
                   <Post key={post._id} post={post} />
                 ))}
               </div>

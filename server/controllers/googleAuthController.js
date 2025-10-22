@@ -1,6 +1,7 @@
 const { OAuth2Client } = require("google-auth-library");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const {Role} = require("../models/role");
 const config = require("../config/config");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -51,7 +52,15 @@ const googleLoginController = async (req, res) => {
     config.JWT_SECRET,
     { expiresIn: "1d" }
     );
+    let roleName = "user";
+    if (user.role) {
+      const roleDoc = await Role.findById(user.role).select("name").lean();
+      if (roleDoc && roleDoc.name) {
+        roleName = roleDoc.name;
+      }
+    }
     const userObj = user.toObject();
+    userObj.roleName = roleName;
     delete userObj.password;
 
     return res.status(200).json({

@@ -24,14 +24,20 @@ async function authMiddleware(req, res, next) {
     }
 
     const role = user.role;
+    const method = req.method.toUpperCase();
+    const route = req.originalUrl.split("?")[0];
+    if (route.includes("/admin")) {
+      if (role.name !== "admin") {
+        return res.status(403).json({ message: "Access denied: admin only route" });
+      }
+    }
 
     if (role.permission_level === "*") {
       req.user = decoded;
       return next();
     }
 
-    const method = req.method.toUpperCase();
-    const route = req.originalUrl.split("?")[0];
+    
 
     const allowed = role.permissions.some((perm) =>
       perm.routes.some(

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { socket } from "../utils/socket";
+import { authAxios } from "./axios";
 const API_BASE = import.meta.env.VITE_API_URL;
 export const signup = async (data) => {
     const payload={
@@ -9,7 +10,6 @@ export const signup = async (data) => {
         password:data.password
     }
   const res = await axios.post(`${API_BASE}/user/signup`, payload);
-  console.log(res);
   return res.data;
 };
 
@@ -20,11 +20,9 @@ export const signin = async (formData) => {
     const { token, user } = res.data.data;
 
     if (token) {
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      socket.connect();
+      socket.emit("register_user", user._id);
     }
-    socket.connect();
-    socket.emit("register_user", user._id);
     return res.data;
   } catch (err) {
     if (err.response) {
