@@ -1,0 +1,106 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      # Backend test environment
+      NODE_ENV: test
+      PORT: 5000
+      MONGO_URL: ${{ secrets.MONGO_URI }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      IMAGEKIT_PUBLIC_KEY: ${{ secrets.IMAGEKIT_PUBLIC_KEY }}
+      IMAGEKIT_PRIVATE_KEY: ${{ secrets.IMAGEKIT_PRIVATE_KEY }}
+      IMAGEKIT_URL_ENDPOINT: ${{ secrets.IMAGEKIT_URL_ENDPOINT }}
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+
+      # Deployment secrets
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ------------------------------
+      # 2️⃣ Set up Node.js
+      # ------------------------------
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # ------------------------------
+      # 3️⃣ Backend tests
+      # ------------------------------
+      - name: Install backend dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Create .env.test for backend
+        working-directory: server
+        run: |
+          echo "PORT=${PORT}" > .env.test
+          echo "NODE_ENV=${NODE_ENV}" >> .env.test
+          echo "MONGO_URL=${MONGO_URL}" >> .env.test
+          echo "JWT_SECRET=${JWT_SECRET}" >> .env.test
+          echo "IMAGEKIT_PUBLIC_KEY=${IMAGEKIT_PUBLIC_KEY}" >> .env.test
+          echo "IMAGEKIT_PRIVATE_KEY=${IMAGEKIT_PRIVATE_KEY}" >> .env.test
+          echo "IMAGEKIT_URL_ENDPOINT=${IMAGEKIT_URL_ENDPOINT}" >> .env.test
+          echo "GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}" >> .env.test
+          echo "CORS_ORIGINS=${CORS_ORIGINS}" >> .env.test
+
+      - name: Run backend tests
+        working-directory: server
+        run: npm test
+
+      # ------------------------------
+      # 4️⃣ Frontend tests
+      # ------------------------------
+      - name: Install frontend dependencies
+        working-directory: client
+        run: npm install --legacy-peer-deps
+
+      - name: Create .env for frontend testing
+        working-directory: client
+        run: |
+          echo "VITE_API_URL=http://localhost:5000" > .env
+          echo "VITE_IMAGEKIT_PUBLIC_KEY=${{ secrets.IMAGEKIT_PUBLIC_KEY }}" >> .env
+          echo "VITE_IMAGEKIT_URL_ENDPOINT=${{ secrets.IMAGEKIT_URL_ENDPOINT }}" >> .env
+          echo "VITE_IMAGEKIT_AUTH_ENDPOINT=${{ secrets.IMAGEKIT_PRIVATE_KEY }}" >> .env
+          echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+
+      - name: Run frontend tests
+        working-directory: client
+        run: npm test
+
+      # ------------------------------
+      # 5️⃣ Deploy backend to Render (Deploy Hook)
+      # ------------------------------
+      - name: Deploy backend to Render
+        if: success()
+        run: |
+          echo "Triggering Render deployment..."
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+
+      # ------------------------------
+      # 6️⃣ Deploy frontend to Vercel
+      # ------------------------------
+      - name: Deploy frontend to Vercel
+        if: success()
+        uses: amondnet/vercel-action@v23
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./client
+          prod: true
