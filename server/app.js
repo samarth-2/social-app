@@ -8,10 +8,11 @@ const imageKitRoutes = require("./routes/imageKitRoutes");
 const googleAuthRoutes = require("./routes/googleRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const { initSocket } = require("./socket/socket");
+const config = require("./config/config");
 
 const app = express();
 app.use(express.json());
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: config.ALLOWED_ORIGINS ,credentials: true }));
 
 app.use("/user", userRoutes);
 app.use("/post", postRoutes);
