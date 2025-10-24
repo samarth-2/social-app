@@ -8,15 +8,12 @@ export default function SocketEventHandler() {
       socket.connect();
     }
 
-    console.log("Listening for socket events...");
     
     socket.on("new_post_added", (data) => {
-      console.log("Received event:", data);
       toast.info(`${data.username} added a new post`);
     });
 
     socket.on("new_comment_added", (data) => {
-      console.log("Received event:", data);
       toast.info(`${data.username} added a comment on ${data.author}'s post`);
     });
 

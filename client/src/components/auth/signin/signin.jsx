@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { setAuth } from "../../../redux/slice/authSlice";
 import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 import axios from "axios";
 
 const schema = yup.object().shape({
@@ -35,8 +36,10 @@ export default function Signin() {
       const {token,user} = res.data;
       dispatch(setAuth({ user, token }));
       reset();
+      toast.info("login successful");
       navigate("/");
     } catch (err) {
+      toast.error("Invalid email or password");
       console.error("Login failed:", err);
     }
   };

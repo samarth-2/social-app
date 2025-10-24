@@ -1,21 +1,24 @@
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { signup } from "../../../api/auth";
 import * as yup from "yup";
-
+import { signup } from "../../../api/auth";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 const schema = yup.object().shape({
   name: yup
     .string()
+    .matches(/^[A-Za-z\s]+$/, "Name must only contain letters and spaces")
     .min(2, "Name must be at least 2 characters")
     .required("Name is required"),
   username: yup
     .string()
-    .min(3, "Username must be at least 3 characters")
     .matches(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, and underscores allowed")
+    .min(3, "Username must be at least 3 characters")
     .required("Username is required"),
   email: yup
     .string()
+    .trim()
     .email("Enter a valid email")
     .required("Email is required"),
   password: yup
@@ -25,6 +28,7 @@ const schema = yup.object().shape({
 });
 
 export default function Signup() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -36,10 +40,13 @@ export default function Signup() {
 
   const onSubmit = async (data) => {
     try {
-        const res = await signup(data);
-        console.log("User created:", res);
-        reset();
+      const res = await signup(data);
+      reset();
+      navigate("/signin");
+      toast.success("Signup successful! Please sign in.");
     } catch (err) {
+      reset();
+      toast.error(err || "Signup failed");
       console.error("Signup failed:", err);
     }
   };

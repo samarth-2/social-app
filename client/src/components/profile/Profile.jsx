@@ -30,7 +30,6 @@ export default function ProfilePage() {
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4 flex justify-center">
       <div className="w-full max-w-6xl">
-        {/* Profile Info */}
         <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center mb-10">
           <div className="w-28 h-28 bg-gray-200 rounded-full mb-4 flex items-center justify-center text-4xl font-bold text-gray-600">
             {user.name?.[0] || user.username?.[0]}
@@ -43,10 +42,9 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Posts Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.length ? (
-            posts.map((post) => <Post key={post._id} post={post} />)
+            posts.map((post) => <Post key={post._id} post={post} setPosts={setPosts} />)
           ) : (
             <p className="text-gray-500 col-span-full text-center">No posts yet.</p>
           )}

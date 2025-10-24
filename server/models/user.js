@@ -1,4 +1,5 @@
 const mongoose = require("../database/database");
+const { Role } = require("./role");
 
 const userSchema = new mongoose.Schema(
   {
@@ -36,6 +37,18 @@ const userSchema = new mongoose.Schema(
   }
 );
 userSchema.index({ role: 1 });
+
+userSchema.pre("save", async function (next) {
+  if (!this.role) {
+    const defaultRole = await Role.findOne({ name: "user" });
+    if (defaultRole) {
+      this.role = defaultRole._id;
+    } else {
+      console.warn("Default role 'User' not found. Please seed roles first.");
+    }
+  }
+  next();
+});
 
 const User = mongoose.model("User", userSchema);
 

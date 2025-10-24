@@ -157,12 +157,16 @@ const getUserProfileService = async (userId) => {
   const posts = await Post.find({ author: userId })
     .sort({ createdAt: -1 })
     .populate({
+    path: "author",
+    select: "username name _id", 
+  })
+    .populate({
       path: "comments",
       select: "_id text author",
       populate: { path: "author", select: "username name" },
     })
     .lean();
-
+    console.log(posts);
   return { user, posts };
 };
 

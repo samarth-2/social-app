@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { createPostThunk, fetchPostsThunk } from "../../redux/asyncthunk/postsThunks";
 import { setPage } from "../../redux/slice/feedSlice";
-
+import  DOMPurify  from "dompurify";
 export default function Home() {
   const dispatch = useDispatch();
   const { items: posts, page, totalPages, loading } = useSelector((state) => state.posts);
@@ -28,16 +28,19 @@ export default function Home() {
   const handlePostSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      const { title, content, imageFile } = newPost;
-      if (!title.trim() || !content.trim()) return toast.error("All fields required");
-      if (!imageFile) return toast.error("Upload an image!");
+    const { title: rawTitle, content: rawContent, imageFile } = newPost;
+    if (!rawTitle.trim() || !rawContent.trim()) return toast.error("All fields required");
+    if (!imageFile) return toast.error("Upload an image!");
 
+    const title = DOMPurify.sanitize(rawTitle, { ALLOWED_TAGS: [] });
+    const content = DOMPurify.sanitize(rawContent, { ALLOWED_TAGS: [] });
       dispatch(createPostThunk({ title, content, imageFile }))
         .unwrap()
         .then(() => {
           toast.success("Post created!");
           setNewPost({ title: "", content: "", imageFile: null });
           setImagePreview(null);
+          dispatch(fetchPostsThunk(page));
         })
         .catch((err) => toast.error(err || "Error creating post"));
     },
@@ -96,8 +99,8 @@ export default function Home() {
               <p className="text-gray-500 text-center">Loading...</p>
             ) : recentPosts.length ? (
               <div className="flex flex-col gap-6">
-                {recentPosts.map((post) => (
-                  <Post key={post._id} post={post} />
+                {recentPosts.map((post,index) => (
+                  <Post key={post._id || index} post={post} page={page} />
                 ))}
               </div>
             ) : (

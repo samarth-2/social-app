@@ -1,14 +1,21 @@
 import { useState } from "react";
 import { createComment } from "../../api/comment";
-
-export default function Post({ post, setPosts }) {
+import { toast } from "react-toastify";
+import DOMPurify from "dompurify";
+import { fetchPostsThunk } from "../../redux/asyncthunk/postsThunks";
+import { useDispatch } from "react-redux";
+export default function Post({ post, setPosts ,page}) {
   const [commentText, setCommentText] = useState("");
-
+  const dispatch = useDispatch();
   const handleAddComment = async (e) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
-    try {
-      await createComment(commentText, post._id);
+  e.preventDefault();
+  if (!commentText.trim()) return;
+  const sanitizedComment = DOMPurify.sanitize(commentText, { ALLOWED_TAGS: [] });
+  try {
+    await createComment(sanitizedComment, post._id);
+    if(page){
+      dispatch(fetchPostsThunk(page));
+    }else{
       setPosts((prev) =>
         prev.map((p) =>
           p._id === post._id
@@ -19,18 +26,20 @@ export default function Post({ post, setPosts }) {
                   {
                     _id: Date.now(),
                     author: { username: "You" },
-                    text: commentText,
+                    text: sanitizedComment,
                   },
                 ],
               }
             : p
         )
       );
-      setCommentText("");
-    } catch (err) {
-      console.error("Failed to add comment:", err);
     }
-  };
+    setCommentText("");
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to add comment");
+  }
+};
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-2xl shadow-sm p-5 transition hover:shadow-md">
