@@ -86,6 +86,9 @@ const getActiveUsersController = async (req, res) => {
 const getUserProfileController = async (req, res) => {
   try {
     const { userId } = req.params;
+    if(!userId){
+      return res.status(400).json({message:"UserId is required"});
+    }
     const result = await getUserProfileService(userId);
     res.status(200).json(result);
   } catch (err) {

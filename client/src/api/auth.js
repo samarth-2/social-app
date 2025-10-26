@@ -38,7 +38,7 @@ export const getUserProfile = async (userId) => {
     const response = await authAxios.get(`/user/profile/${userId}`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching user profile:", error);
+    
     throw error.response?.data || { message: "Failed to fetch profile" };
   }
 };

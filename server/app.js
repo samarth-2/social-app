@@ -9,10 +9,12 @@ const googleAuthRoutes = require("./routes/googleRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const { initSocket } = require("./socket/socket");
 const config = require("./config/config");
+const sanitizeMiddleware = require("./utils/sanitizeMiddleware");
 
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: config.ALLOWED_ORIGINS ,credentials: true }));
+app.use(sanitizeMiddleware)
 
 app.use("/user", userRoutes);
 app.use("/post", postRoutes);

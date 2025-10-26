@@ -12,6 +12,9 @@ const createCommentController = async(req,res)=>{
     try{
         const {text,postId} =req.body;
         const authorId = req.user.userId;
+        if(!text || !postId){
+            return res.status(400).json({message:"text and postId are required"});
+        }
         const comment = await createCommentService(text,postId,authorId);
         const post = await Post.findById(postId)
     .populate("author", "username");

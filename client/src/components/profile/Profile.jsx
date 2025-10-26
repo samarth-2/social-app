@@ -8,24 +8,57 @@ export default function ProfilePage() {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!userId) {
+      setError("No profile found");
+      setLoading(false);
+      return;
+    }
+
     (async () => {
       setLoading(true);
+      setError("");
       try {
-        const res = await getUserProfile(userId); 
+        const res = await getUserProfile(userId);
+        if (!res.user) {
+          setError("No profile found");
+          setUser(null);
+          setPosts([]);
+          return;
+        }
         setUser(res.user);
-        setPosts(res.posts);
+        setPosts(res.posts || []);
       } catch (err) {
-        console.error("Failed to fetch profile:", err);
+        setError("Failed to fetch profile");
+        setUser(null);
+        setPosts([]);
       } finally {
         setLoading(false);
       }
     })();
   }, [userId]);
 
-  if (loading) return <p className="text-center mt-20 text-gray-500">Loading...</p>;
-  if (!user) return <p className="text-center mt-20 text-gray-500">User not found</p>;
+  if (!userId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500 text-lg">No profile ID provided</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <p className="text-center mt-20 text-gray-500">Loading...</p>;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500 text-lg">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen py-10 px-4 flex justify-center">
