@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor,act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 
@@ -70,7 +70,12 @@ describe('Home integration with redux', () => {
     );
 
   const { createPostThunk } = require('../redux/asyncthunk/postsThunks');
-  await store.dispatch(createPostThunk({ title: 'Integration title', content: 'Integration content' }));
+    await act(async () => {
+      await store.dispatch(createPostThunk({
+        title: 'Integration title',
+        content: 'Integration content'
+      }));
+    });
 
   await waitFor(() => expect(store.getState().posts.items.length).toBe(1));
   expect(store.getState().posts.items[0].title).toBe('Integration title');
