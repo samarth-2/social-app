@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const ImageKit = require("imagekit");
 const config = require("../config/config");
+const authMiddleware = require("../utils/authmiddleware");
 
 const imagekit = new ImageKit({
     publicKey: config.IMAGEKIT_PUBLIC_KEY,
@@ -9,7 +10,7 @@ const imagekit = new ImageKit({
     urlEndpoint: config.IMAGEKIT_URL_ENDPOINT,
 });
 
-router.get("/auth", (req, res) => {
+router.get("/auth",authMiddleware, (req, res) => {
     try {
         const result = imagekit.getAuthenticationParameters();
         res.json(result);

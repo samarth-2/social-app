@@ -1,3 +1,5 @@
+const { Role } = require("../models/role");
+const User = require("../models/user");
 const { signupService, signinService, followUserService, unfollowUserService, getUsersForChatService ,getRandomUsersService,getActiveUsersService, getUserProfileService } = require("../services/authService");
 
 const signupController = async (req, res) => {
@@ -27,11 +29,15 @@ const signinController = async (req, res) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    const user = await signinService({ email, password });
-
+    const {user,token} = await signinService({ email, password });
+    res.cookie("token", token, {
+      httpOnly: true,          
+      sameSite: "strict",      
+      maxAge: 24 * 60 * 60 * 1000
+    });
     return res.status(200).json({
       message: "logged-in successfully",
-      data:user,
+      data:{user}
     });
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -96,7 +102,41 @@ const getUserProfileController = async (req, res) => {
   }
 };
 
+ const checkUserAuthController = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const user = await User.findById(userId).select("-password").lean();
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
+
+    let roleName = "user";
+    if (user.role) {
+      const role = await Role.findById(user.role).select("name").lean();
+      if (role) roleName = role.name;
+    }
+
+    const userWithRole = { ...user, roleName };
+
+    res.status(200).json({ user: userWithRole });
+  } catch (err) {
+    console.error("Error checking auth:", err);
+    res.status(401).json({ message: "Unauthorized" });
+  }
+};
+
+const logoutController=async(req,res)=>{
+  try{
+    res.clearCookie("token",{
+      httpOnly: true,          
+      sameSite: "strict",      
+    });
+    return  res.status(200).json({message:"Logged out successfully"});
+  }catch(err){
+    return res.status(400).json({message:err.message});
+  }
+}
 
 module.exports = {
     signupController,
@@ -105,5 +145,7 @@ module.exports = {
     unfollowUserController,
     getActiveUsersController,
     getRandomUsersController,
-    getUserProfileController
+    getUserProfileController,
+    checkUserAuthController,
+    logoutController
 }

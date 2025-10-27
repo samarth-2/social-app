@@ -10,10 +10,11 @@ const adminRoutes = require("./routes/adminRoutes");
 const { initSocket } = require("./socket/socket");
 const config = require("./config/config");
 const sanitizeMiddleware = require("./utils/sanitizeMiddleware");
-
+const cookieParser = require("cookie-parser");
 const app = express();
 app.use(express.json());
 app.use(cors({ origin: config.ALLOWED_ORIGINS ,credentials: true }));
+app.use(cookieParser());
 app.use(sanitizeMiddleware)
 
 app.use("/user", userRoutes);

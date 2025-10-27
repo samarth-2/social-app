@@ -63,9 +63,14 @@ const googleLoginController = async (req, res) => {
     userObj.roleName = roleName;
     delete userObj.password;
 
+    res.cookie("token", token, {
+      httpOnly: true,           
+      sameSite: "strict",       
+      maxAge: 24 * 60 * 60 * 1000,
+    });
     return res.status(200).json({
       message: "logged-in successfully",
-      data:{ user: userObj, token:token }
+      data:{ user: userObj }
     });
 
   } catch (err) {

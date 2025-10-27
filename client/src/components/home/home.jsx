@@ -13,6 +13,7 @@ export default function Home() {
 
   const [newPost, setNewPost] = useState({ title: "", content: "", imageFile: null });
   const [imagePreview, setImagePreview] = useState(null);
+  const [fileKey, setFileKey] = useState(0);
 
   useEffect(() => {
     dispatch(fetchPostsThunk(page));
@@ -40,6 +41,7 @@ export default function Home() {
           toast.success("Post created!");
           setNewPost({ title: "", content: "", imageFile: null });
           setImagePreview(null);
+          setFileKey((k) => k + 1);
           dispatch(fetchPostsThunk(page));
         })
         .catch((err) => toast.error(err || "Error creating post"));
@@ -75,7 +77,7 @@ export default function Home() {
                 onChange={(e) => setNewPost((prev) => ({ ...prev, content: e.target.value }))}
                 className="border rounded-md p-3 w-full focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px]"
               />
-              <input type="file" accept="image/*" onChange={handleImageChange} />
+              <input key={fileKey} type="file" accept="image/*" onChange={handleImageChange} />
               {imagePreview && (
                 <img
                   src={imagePreview}

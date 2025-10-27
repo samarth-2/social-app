@@ -32,15 +32,14 @@ export default function Signin() {
 
   const onSubmit = async (data) => {
     try {
-      const res = await signin(data);
-      const {token,user} = res.data;
-      dispatch(setAuth({ user, token }));
+    const res = await signin(data);
+      const user = res;
+      dispatch(setAuth({ user}));
       reset();
       toast.info("login successful");
       navigate("/");
     } catch (err) {
       toast.error("Invalid email or password");
-      console.error("Login failed:", err);
     }
   };
 
@@ -48,11 +47,13 @@ export default function Signin() {
     try {
       const { credential } = response;
       const api_url=import.meta.env.VITE_API_URL;
-      const res = await axios.post(`${api_url}/google/auth`, {
-        credential,
-      });
-      const {user,token} = res.data.data; 
-      dispatch(setAuth({user,token}));
+      const res = await axios.post(
+        `${api_url}/google/auth`,
+        { credential },
+        { withCredentials: true }
+      );
+      const {user} = res.data.data; 
+      dispatch(setAuth({user}));
       navigate("/");
     } catch (err) {
       console.error("Google login error:", err);

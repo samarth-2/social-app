@@ -4,33 +4,21 @@ import SocketEventHandler from "./utils/socketEventsHandler";
 import { ToastContainer } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { clearAuth } from "./redux/slice/authSlice";
-import { jwtDecode } from "jwt-decode";
-import { useEffect } from "react";
+import { authAxios } from "./api/axios";
 
 export default function Layout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user, token } = useSelector((state) => state.auth);
-  const isLoggedIn = !!token;
+  const { user } = useSelector((state) => state.auth);
+  const isLoggedIn = !!user;
 
-  useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        const now = Date.now() / 1000;
-        if (decoded.exp && decoded.exp <= now) {
-          dispatch(clearAuth());
-          navigate("/signin");
-        }
-      } catch (err) {
-        dispatch(clearAuth());
-      }
+  const handleLogout = async () => {
+    try {
+      await authAxios.post("/user/logout");
+    } catch (e) {
     }
-  }, [token, dispatch, navigate]);
-
-  const handleLogout = () => {
     dispatch(clearAuth());
-    navigate("/signin");
+    if (location.pathname !== "/signin") navigate("/signin");
   };
 
   return (

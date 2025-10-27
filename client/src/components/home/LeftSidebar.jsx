@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 export default function LeftSidebar() {
-    const { user, token } = useSelector((state) => state.auth);
+    const { user} = useSelector((state) => state.auth);
   const links = [
     { to: "/", label: "Home", icon: "🏠" },
     { to: `/profile/${user._id}`, label: "Profile", icon: "👤" },

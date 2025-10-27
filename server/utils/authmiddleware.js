@@ -6,12 +6,10 @@ const Permission = require("../models/permission");
 
 async function authMiddleware(req, res, next) {
   try {
-    const authHeader = req.headers["authorization"];
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    const token = req.cookies.token;
+    if (!token) {
       return res.status(401).json({ message: "Authorization token missing or invalid" });
     }
-
-    const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, config.JWT_SECRET);
 
     const user = await User.findById(decoded.userId).populate({

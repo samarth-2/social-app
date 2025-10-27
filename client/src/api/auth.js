@@ -16,14 +16,14 @@ export const signup = async (data) => {
 
 export const signin = async (formData) => {
   try {
-    const res = await axios.post(`${API_BASE}/user/signin`, formData);
-    const { token, user } = res.data.data;
+  const res = await axios.post(`${API_BASE}/user/signin`, formData, { withCredentials: true });
 
-    if (token) {
+  const {  user } = res.data.data;
+    if (user) {
       socket.connect();
       socket.emit("register_user", user._id);
     }
-    return res.data;
+    return user;
   } catch (err) {
     if (err.response) {
       throw new Error(err.response.data.message || "Signin failed");

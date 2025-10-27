@@ -5,6 +5,7 @@ import App from './App.jsx'
 import { store } from './store.js';
 import {Provider} from "react-redux";
 import {GoogleOAuthProvider} from "@react-oauth/google";
+import 'react-toastify/dist/ReactToastify.css';
 
 const client_id_google= import.meta.env.VITE_GOOGLE_CLIENT_ID;
 

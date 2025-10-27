@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchFeed, createPost } from "../../api/post";
 import imagekit from "../../api/imagekit";
-
+import { authAxios } from "../../api/axios";
 export const fetchPostsThunk = createAsyncThunk(
   "posts/fetchPosts",
   async (page, { rejectWithValue }) => {
@@ -19,11 +19,11 @@ export const createPostThunk = createAsyncThunk(
   "posts/createPost",
   async ({ title, content, imageFile }, { rejectWithValue }) => {
     try {
-      const authResponse = await fetch(import.meta.env.VITE_IMAGEKIT_AUTH_ENDPOINT);
-      if (!authResponse.ok) throw new Error("Failed to get ImageKit auth");
-      const authData = await authResponse.json();
-
-
+      const authResponse = await authAxios.get("/imagekit/auth");
+      const authData = authResponse.data;
+      if (!authData?.token || !authData?.signature) {
+        throw new Error("Invalid ImageKit auth response");
+      }
       const uploadResponse = await new Promise((resolve, reject) => {
         imagekit.upload(
           {

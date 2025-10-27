@@ -1,60 +1,49 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
 import { useSelector, useDispatch } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { setAuth, clearAuth } from "../redux/slice/authSlice";
+import { authAxios } from "../api/axios";
 
 export default function ProtectedRoute() {
   const location = useLocation();
   const dispatch = useDispatch();
-  const { user, token } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      const storedToken = localStorage.getItem("token");
-      const storedUser = localStorage.getItem("user");
-      if (storedToken && storedUser) {
-        try {
-          const decoded = jwtDecode(storedToken);
-          if (decoded.exp > Date.now() / 1000) {
-            dispatch(setAuth({ user: JSON.parse(storedUser), token: storedToken }));
-          } else {
-            dispatch(clearAuth());
-          }
-        } catch {
-         dispatch(clearAuth());
+    const verifyAuth = async () => {
+      try {
+        const res = await authAxios.get("/user/check-auth", { withCredentials: true });
+        if (res.data?.user) {
+          dispatch(setAuth({ user: res.data.user }));
+        } else {
+          dispatch(clearAuth());
         }
+      } catch {
+        dispatch(clearAuth());
+      } finally {
+        setCheckingAuth(false);
       }
-    }
-  }, [token, dispatch]);
+    };
+    verifyAuth();
+  }, [dispatch]);
+
+  if (checkingAuth) return null;
 
   const isAuthPage = ["/signin", "/signup"].includes(location.pathname);
   const isAdminPage = ["/admin", "/admin/dashboard"].includes(location.pathname);
 
-  if (!token) {
+  if (!user) {
     return isAuthPage ? <Outlet /> : <Navigate to="/signin" replace />;
   }
 
-  try {
-    const decoded = jwtDecode(token);
-
-    if (decoded.exp < Date.now() / 1000) {
-      dispatch(clearAuth());
-      return <Navigate to="/signin" replace />;
-    }
-
-
-    if (isAuthPage) {
-      return <Navigate to="/" replace />;
-    }
-
-    if (isAdminPage && user?.roleName !== "admin") {
-      return <Navigate to="/" replace />;
-    }
-
-    return <Outlet />;
-  } catch {
-    dispatch(clearAuth());
-    return <Navigate to="/signin" replace />;
+  if (isAuthPage) {
+    return <Navigate to="/" replace />;
   }
+
+  if (isAdminPage && user?.roleName !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
 }
