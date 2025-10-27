@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const {usersMap }= require("../socket/socketHandler");
 const Post = require("../models/post");
 const {Role} = require("../models/role");
+const mongoose = require("mongoose");
 
 const signupService = async ({ name, username, email, password }) => {
   const existingUser = await User.findOne({
@@ -128,8 +129,9 @@ const getUsersForChatService=async(userId)=>{
 }
 
 const getRandomUsersService = async (currentUserId) => {
+  const objectId = new mongoose.Types.ObjectId(currentUserId);
   const users = await User.aggregate([
-    { $match: { _id: { $ne: currentUserId } } }, 
+    { $match: { _id: { $ne: objectId } } }, 
     { $sample: { size: 5 } },
     { $project: {_id:1, username: 1,name:1 } }
   ]);
@@ -148,6 +150,10 @@ const getActiveUsersService = async (currentUserId) => {
 };
 
 const getUserProfileService = async (userId) => {
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new Error("Invalid user ID");
+  }
 
   const user = await User.findById(userId)
     .select("_id name username email")

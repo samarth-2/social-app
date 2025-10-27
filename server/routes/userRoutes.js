@@ -13,6 +13,6 @@ router.post('/follow',authMiddleware,followUserController);
 router.post('/unfollow',authMiddleware,unfollowUserController);
 router.get('/random',authMiddleware,getRandomUsersController);
 router.get('/active',authMiddleware,getActiveUsersController);
-router.get("/profile/:userId", getUserProfileController);
+router.get("/profile/:userId",authMiddleware,getUserProfileController);
 
 module.exports = router;
