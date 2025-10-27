@@ -63,9 +63,12 @@ const googleLoginController = async (req, res) => {
     userObj.roleName = roleName;
     delete userObj.password;
 
+    const env = (config.env || '').toLowerCase();
+    const isProd = env === 'production' || env === 'prod' || env.startsWith('prod');
     res.cookie("token", token, {
-      httpOnly: true,           
-      sameSite: "strict",       
+      httpOnly: true,
+      sameSite: isProd ? 'none' : 'strict',
+      secure: !!isProd,
       maxAge: 24 * 60 * 60 * 1000,
     });
     return res.status(200).json({

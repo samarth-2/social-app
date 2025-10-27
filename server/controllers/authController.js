@@ -1,7 +1,7 @@
 const { Role } = require("../models/role");
 const User = require("../models/user");
 const { signupService, signinService, followUserService, unfollowUserService, getUsersForChatService ,getRandomUsersService,getActiveUsersService, getUserProfileService } = require("../services/authService");
-
+const config = require('../config/config');
 const signupController = async (req, res) => {
   try {
     const { name, username, email, password } = req.body;
@@ -30,11 +30,15 @@ const signinController = async (req, res) => {
     }
 
     const {user,token} = await signinService({ email, password });
-    res.cookie("token", token, {
-      httpOnly: true,          
-      sameSite: "strict",      
-      maxAge: 24 * 60 * 60 * 1000
-    });
+      const env = (config.env || '').toLowerCase();
+      const isProd = env === 'production' || env === 'prod' || env.startsWith('prod');
+        res.cookie("token", token, {
+          httpOnly: true,
+          sameSite: isProd ? 'none' : 'strict',
+          secure: !!isProd,
+          maxAge: 24 * 60 * 60 * 1000,
+        });
+      console.debug('Signin: set cookie sameSite=', isProd ? 'none' : 'strict', 'ENV=', config.env);
     return res.status(200).json({
       message: "logged-in successfully",
       data:{user}
@@ -128,10 +132,14 @@ const getUserProfileController = async (req, res) => {
 
 const logoutController=async(req,res)=>{
   try{
-    res.clearCookie("token",{
-      httpOnly: true,          
-      sameSite: "strict",      
-    });
+  const config = require('../config/config');
+  const env = (config.env || '').toLowerCase();
+  const isProd = env === 'production' || env === 'prod' || env.startsWith('prod');
+        res.clearCookie("token", {
+          httpOnly: true,
+          sameSite: isProd ? 'none' : 'strict',
+          secure: !!isProd,
+        });
     return  res.status(200).json({message:"Logged out successfully"});
   }catch(err){
     return res.status(400).json({message:err.message});
